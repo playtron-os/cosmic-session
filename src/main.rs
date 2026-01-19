@@ -286,8 +286,14 @@ async fn start(
 	let panel_key = Arc::new(Mutex::new(None));
 	let notif_key = Arc::new(Mutex::new(None));
 
+	// SESSION_PANEL env var allows overriding the panel binary (defaults to cosmic-panel)
+	let panel_name: String =
+		std::env::var("SESSION_PANEL").unwrap_or_else(|_| "cosmic-panel".to_string());
+	let panel_name_static: &'static str = Box::leak(panel_name.clone().into_boxed_str());
+
 	let notifications_span = info_span!(parent: None, "cosmic-notifications");
-	let panel_span = info_span!(parent: None, "cosmic-panel");
+	let panel_span =
+		tracing::span!(parent: None, tracing::Level::INFO, "panel", name = %panel_name);
 
 	let mut guard = notif_key.lock().await;
 	*guard = Some(
@@ -299,7 +305,7 @@ async fn start(
 				daemon_env_vars.clone(),
 				daemon_notifications_fd,
 				panel_span.clone(),
-				"cosmic-panel",
+				panel_name_static,
 				panel_key.clone(),
 				panel_env_vars.clone(),
 			))
@@ -313,7 +319,7 @@ async fn start(
 		process_manager
 			.start(notifications_process(
 				panel_span,
-				"cosmic-panel",
+				panel_name_static,
 				panel_key.clone(),
 				panel_env_vars,
 				panel_notifications_fd,
@@ -330,26 +336,22 @@ async fn start(
 	let span = info_span!(parent: None, "cosmic-app-library");
 	start_component("cosmic-app-library", span, &process_manager, &env_vars).await;
 
-	let span = info_span!(parent: None, "cosmic-launcher");
-	start_component("cosmic-launcher", span, &process_manager, &env_vars).await;
+	// SESSION_COMPONENTS env var allows specifying which components to start (comma-separated)
+	// Defaults to: cosmic-launcher,cosmic-workspaces,cosmic-osd,cosmic-bg,cosmic-greeter,cosmic-idle
+	let default_components =
+		"cosmic-launcher,cosmic-workspaces,cosmic-osd,cosmic-bg,cosmic-greeter,cosmic-idle";
+	let components =
+		std::env::var("SESSION_COMPONENTS").unwrap_or_else(|_| default_components.to_string());
 
-	let span = info_span!(parent: None, "cosmic-workspaces");
-	start_component("cosmic-workspaces", span, &process_manager, &env_vars).await;
-
-	let span = info_span!(parent: None, "cosmic-osd");
-	start_component("cosmic-osd", span, &process_manager, &env_vars).await;
-
-	let span = info_span!(parent: None, "cosmic-bg");
-	start_component("cosmic-bg", span, &process_manager, &env_vars).await;
-
-	let span = info_span!(parent: None, "cosmic-greeter");
-	start_component("cosmic-greeter", span, &process_manager, &env_vars).await;
-
-	// let span = info_span!(parent: None, "cosmic-files-applet");
-	// start_component("cosmic-files-applet", span, &process_manager, &env_vars).await;
-
-	let span = info_span!(parent: None, "cosmic-idle");
-	start_component("cosmic-idle", span, &process_manager, &env_vars).await;
+	for component in components
+		.split(',')
+		.map(str::trim)
+		.filter(|s| !s.is_empty())
+	{
+		let component_owned = component.to_string();
+		let span = tracing::span!(parent: None, tracing::Level::INFO, "component", name = %component_owned);
+		start_component(component_owned, span, &process_manager, &env_vars).await;
+	}
 
 	#[cfg(feature = "autostart")]
 	if !*is_systemd_used() {
