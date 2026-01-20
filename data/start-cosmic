@@ -55,7 +55,7 @@ fi
 
 if command -v systemctl >/dev/null; then
     # set environment variables for new units started by user service manager
-    systemctl --user import-environment XDG_SESSION_TYPE XDG_CURRENT_DESKTOP DCONF_PROFILE SSH_AUTH_SOCK
+    systemctl --user import-environment XDG_SESSION_TYPE XDG_CURRENT_DESKTOP DCONF_PROFILE SSH_AUTH_SOCK SESSION_PANEL SESSION_COMPONENTS HOME_ENABLED
 fi
 
 # Run cosmic-session
