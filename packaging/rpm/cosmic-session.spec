@@ -14,9 +14,9 @@ Requires:       dbus
 
 # Session components (from upstream cosmic-session dependencies)
 # Pin to 1.0.x series (allow patch updates, not minor/major)
-# cosmic-comp has Epoch:1 so must include epoch in constraint
+# Forked packages have Epoch:1 so must include epoch in constraint
 Requires:       (cosmic-comp >= 1:1.0.0 with cosmic-comp < 1:1.1.0)
-Requires:       (cosmic-greeter >= 1.0.0 with cosmic-greeter < 1.1.0)
+Requires:       (cosmic-greeter >= 1:1.0.0 with cosmic-greeter < 1:1.1.0)
 Requires:       (cosmic-app-library >= 1.0.0 with cosmic-app-library < 1.1.0)
 Requires:       (cosmic-applets >= 1.0.0 with cosmic-applets < 1.1.0)
 Requires:       (cosmic-bg >= 1.0.0 with cosmic-bg < 1.1.0)
