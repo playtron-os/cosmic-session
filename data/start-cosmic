@@ -28,6 +28,33 @@ if [ -n "${SHELL}" ]; then
     fi
 fi
 
+# Ensure XDG_RUNTIME_DIR is set (greetd may not set it)
+if [ -z "$XDG_RUNTIME_DIR" ]; then
+    export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+    if [ ! -d "$XDG_RUNTIME_DIR" ]; then
+        mkdir -p "$XDG_RUNTIME_DIR"
+        chmod 700 "$XDG_RUNTIME_DIR"
+    fi
+fi
+
+# Ensure XDG_VTNR is set (needed for logind session activation)
+if [ -z "$XDG_VTNR" ]; then
+    # Try to detect VT from current tty
+    if tty_path=$(tty 2>/dev/null); then
+        case "$tty_path" in
+            /dev/tty[0-9]*)
+                export XDG_VTNR="${tty_path#/dev/tty}"
+                ;;
+            *)
+                # Default to VT1 if we can't detect
+                export XDG_VTNR=1
+                ;;
+        esac
+    else
+        export XDG_VTNR=1
+    fi
+fi
+
 export XDG_CURRENT_DESKTOP="${XDG_CURRENT_DESKTOP:=COSMIC}"
 export XDG_SESSION_TYPE="${XDG_SESSION_TYPE:=wayland}"
 export _JAVA_AWT_WM_NONREPARENTING=1
