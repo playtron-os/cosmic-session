@@ -28,7 +28,7 @@ Requires:       (cosmic-osd >= 1.0.0 with cosmic-osd < 1.1.0)
 Requires:       (cosmic-panel >= 1:1.0.0 with cosmic-panel < 1:1.1.0)
 Requires:       (cosmic-randr >= 1.0.0 with cosmic-randr < 1.1.0)
 Requires:       (cosmic-screenshot >= 1.0.0 with cosmic-screenshot < 1.1.0)
-Requires:       (cosmic-settings >= 1.0.0 with cosmic-settings < 1.1.0)
+Requires:       (cosmic-settings >= 1:1.0.0 with cosmic-settings < 1:1.1.0)
 Requires:       (cosmic-settings-daemon >= 1.0.0 with cosmic-settings-daemon < 1.1.0)
 # Requires:       cosmic-workspaces  # Disabled - workspace switcher UI not needed
 Requires:       xdg-desktop-portal-cosmic
