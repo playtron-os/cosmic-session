@@ -18,7 +18,7 @@ Requires:       dbus
 Requires:       (cosmic-comp >= 1:1.0.0 with cosmic-comp < 1:1.1.0)
 Requires:       (cosmic-greeter >= 1:1.0.0 with cosmic-greeter < 1:1.1.0)
 Requires:       (cosmic-app-library >= 1.0.0 with cosmic-app-library < 1.1.0)
-Requires:       (cosmic-applets >= 1.0.0 with cosmic-applets < 1.1.0)
+Requires:       (cosmic-applets >= 1:1.0.0 with cosmic-applets < 1:1.1.0)
 Requires:       (cosmic-bg >= 1.0.0 with cosmic-bg < 1.1.0)
 Requires:       (cosmic-icon-theme >= 1.0.0 with cosmic-icon-theme < 1.1.0)
 Requires:       (cosmic-idle >= 1.0.0 with cosmic-idle < 1.1.0)
