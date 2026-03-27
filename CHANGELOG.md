@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/playtron-os/cosmic-session/compare/v1.1.0...v1.1.1) (2026-03-27)
+
+
+### Bug Fixes
+
+* remove cosmic-screenshots from rpm spec ([f4c5350](https://github.com/playtron-os/cosmic-session/commit/f4c53501cebd641197fd5e01809068889d4e8c96))
+
 # [1.1.0](https://github.com/playtron-os/cosmic-session/compare/v1.0.3...v1.1.0) (2026-02-04)
 
 
