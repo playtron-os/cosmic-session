@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/playtron-os/cosmic-session/compare/v1.1.1...v1.1.2) (2026-04-01)
+
+
+### Bug Fixes
+
+* forward COSMIC_ACTIVATION_TRUSTED_APPS var ([148fc5b](https://github.com/playtron-os/cosmic-session/commit/148fc5b875598922c93f58415e0d2e088c992395))
+
 ## [1.1.1](https://github.com/playtron-os/cosmic-session/compare/v1.1.0...v1.1.1) (2026-03-27)
 
 
