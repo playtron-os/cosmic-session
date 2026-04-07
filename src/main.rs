@@ -291,7 +291,14 @@ async fn start(
 		std::env::var("SESSION_PANEL").unwrap_or_else(|_| "cosmic-panel".to_string());
 	let panel_name_static: &'static str = Box::leak(panel_name.clone().into_boxed_str());
 
-	let notifications_span = info_span!(parent: None, "cosmic-notifications");
+	// SESSION_NOTIFICATIONS env var allows overriding the notifications binary
+	let notifications_name: String = std::env::var("SESSION_NOTIFICATIONS").expect(
+		"SESSION_NOTIFICATIONS env var must be set to the notifications daemon executable name",
+	);
+	let notifications_name_static: &'static str =
+		Box::leak(notifications_name.clone().into_boxed_str());
+
+	let notifications_span = info_span!(parent: None, "notifications", name = %notifications_name);
 	let panel_span =
 		tracing::span!(parent: None, tracing::Level::INFO, "panel", name = %panel_name);
 
@@ -300,7 +307,7 @@ async fn start(
 		process_manager
 			.start(notifications_process(
 				notifications_span.clone(),
-				"cosmic-notifications",
+				notifications_name_static,
 				notif_key.clone(),
 				daemon_env_vars.clone(),
 				daemon_notifications_fd,
@@ -324,7 +331,7 @@ async fn start(
 				panel_env_vars,
 				panel_notifications_fd,
 				notifications_span,
-				"cosmic-notifications",
+				notifications_name_static,
 				notif_key,
 				daemon_env_vars,
 			))
