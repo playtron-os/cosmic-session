@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/playtron-os/cosmic-session/compare/v1.1.2...v1.2.0) (2026-04-07)
+
+
+### Features
+
+* add SESSION_NOTIFICATIONS env var to specify which notifications app to use ([3d9073e](https://github.com/playtron-os/cosmic-session/commit/3d9073efcd193c62da419cdb7544c48756fd7159))
+
 ## [1.1.2](https://github.com/playtron-os/cosmic-session/compare/v1.1.1...v1.1.2) (2026-04-01)
 
 
