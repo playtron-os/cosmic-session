@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/playtron-os/cosmic-session/compare/v1.2.0...v1.2.1) (2026-05-29)
+
+
+### Bug Fixes
+
+* remove cosmic-session from RPM spec ([2a723ac](https://github.com/playtron-os/cosmic-session/commit/2a723ac524ed5800de325f9e9751db63f635d053))
+
 # [1.2.0](https://github.com/playtron-os/cosmic-session/compare/v1.1.2...v1.2.0) (2026-04-07)
 
 
