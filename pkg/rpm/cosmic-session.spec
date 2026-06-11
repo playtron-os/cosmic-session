@@ -24,7 +24,7 @@ Requires:       (cosmic-icon-theme >= 1.0.0 with cosmic-icon-theme < 1.1.0)
 Requires:       (cosmic-idle >= 1.0.0 with cosmic-idle < 1.1.0)
 Requires:       (cosmic-osd >= 1.0.0 with cosmic-osd < 1.1.0)
 Requires:       (cosmic-randr >= 1.0.0 with cosmic-randr < 1.1.0)
-Requires:       (cosmic-settings-daemon >= 1.0.0 with cosmic-settings-daemon < 1.1.0)
+Requires:       (cosmic-settings-daemon >= 1:1.0.0 with cosmic-settings-daemon < 1:1.1.0)
 Requires:       xdg-desktop-portal-cosmic
 Requires:       xorg-x11-server-Xwayland
 Requires:       google-noto-sans-mono-fonts
