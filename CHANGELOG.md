@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/playtron-os/cosmic-session/compare/v1.2.1...v1.2.2) (2026-06-16)
+
+
+### Bug Fixes
+
+* make cosmic-settings-daemon rpm dep use epoch version ([ae28577](https://github.com/playtron-os/cosmic-session/commit/ae285770347fa17b7d8f24e92e8d83f8b4aa0561))
+
 ## [1.2.1](https://github.com/playtron-os/cosmic-session/compare/v1.2.0...v1.2.1) (2026-05-29)
 
 
