@@ -13,16 +13,20 @@ Source0:        %{name}-%{_arch}.tar.gz
 Requires:       systemd
 Requires:       dbus
 
-# Session components (from upstream cosmic-session dependencies)
-# Pin to 1.0.x series (allow patch updates, not minor/major)
-# Forked packages have Epoch:1 so must include epoch in constraint
+# Session components (from upstream cosmic-session dependencies).
+# Bound to the COSMIC 1.x series (< 2.0.0), NOT a single minor: these are
+# independent processes / noarch data (icons, wallpaper), not ABI deps — libcosmic
+# is statically linked into each binary — so they track Fedora's COSMIC release
+# train (now 1.1.x). Pinning them to < 1.1.0 made a routine Fedora lib bump
+# unsatisfiable, which downgraded this fork back to the upstream package.
+# Forked packages carry Epoch:1, so their constraints include the epoch.
 Requires:       (cosmic-comp >= 1:1.0.0 with cosmic-comp < 1:2.0.0)
 Requires:       (cosmic-greeter >= 1:1.0.0 with cosmic-greeter < 1:2.0.0)
-Requires:       (cosmic-bg >= 1.0.0 with cosmic-bg < 1.1.0)
-Requires:       (cosmic-icon-theme >= 1.0.0 with cosmic-icon-theme < 1.1.0)
-Requires:       (cosmic-idle >= 1.0.0 with cosmic-idle < 1.1.0)
-Requires:       (cosmic-osd >= 1.0.0 with cosmic-osd < 1.1.0)
-Requires:       (cosmic-randr >= 1.0.0 with cosmic-randr < 1.1.0)
+Requires:       (cosmic-bg >= 1.0.0 with cosmic-bg < 2.0.0)
+Requires:       (cosmic-icon-theme >= 1.0.0 with cosmic-icon-theme < 2.0.0)
+Requires:       (cosmic-idle >= 1.0.0 with cosmic-idle < 2.0.0)
+Requires:       (cosmic-osd >= 1.0.0 with cosmic-osd < 2.0.0)
+Requires:       (cosmic-randr >= 1.0.0 with cosmic-randr < 2.0.0)
 Requires:       (cosmic-settings-daemon >= 1:1.0.0 with cosmic-settings-daemon < 1:2.0.0)
 Requires:       xdg-desktop-portal-cosmic
 Requires:       xorg-x11-server-Xwayland
