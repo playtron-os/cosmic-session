@@ -18,13 +18,12 @@ Requires:       dbus
 # Forked packages have Epoch:1 so must include epoch in constraint
 Requires:       (cosmic-comp >= 1:1.0.0 with cosmic-comp < 1:2.0.0)
 Requires:       (cosmic-greeter >= 1:1.0.0 with cosmic-greeter < 1:2.0.0)
-Requires:       (cosmic-app-library >= 1.0.0 with cosmic-app-library < 1.1.0)
 Requires:       (cosmic-bg >= 1.0.0 with cosmic-bg < 1.1.0)
 Requires:       (cosmic-icon-theme >= 1.0.0 with cosmic-icon-theme < 1.1.0)
 Requires:       (cosmic-idle >= 1.0.0 with cosmic-idle < 1.1.0)
 Requires:       (cosmic-osd >= 1.0.0 with cosmic-osd < 1.1.0)
 Requires:       (cosmic-randr >= 1.0.0 with cosmic-randr < 1.1.0)
-Requires:       (cosmic-settings-daemon >= 1:1.0.0 with cosmic-settings-daemon < 1:1.1.0)
+Requires:       (cosmic-settings-daemon >= 1:1.0.0 with cosmic-settings-daemon < 1:2.0.0)
 Requires:       xdg-desktop-portal-cosmic
 Requires:       xorg-x11-server-Xwayland
 Requires:       google-noto-sans-mono-fonts
