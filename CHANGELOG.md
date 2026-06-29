@@ -1,3 +1,10 @@
+## [1.2.3](https://github.com/playtron-os/cosmic-session/compare/v1.2.2...v1.2.3) (2026-06-29)
+
+
+### Bug Fixes
+
+* remove requirement on low version cosmic-settings-daemon anad remove cosmic-app-library RPM req too ([4d62d1e](https://github.com/playtron-os/cosmic-session/commit/4d62d1e3c578057c043ac3bb23844b65df4f0469))
+
 ## [1.2.2](https://github.com/playtron-os/cosmic-session/compare/v1.2.1...v1.2.2) (2026-06-16)
 
 
