@@ -21,7 +21,6 @@ Requires:       dbus
 # unsatisfiable, which downgraded this fork back to the upstream package.
 # Forked packages carry Epoch:1, so their constraints include the epoch.
 Requires:       (cosmic-comp >= 1:1.0.0 with cosmic-comp < 1:2.0.0)
-Requires:       (cosmic-greeter >= 1:1.0.0 with cosmic-greeter < 1:2.0.0)
 Requires:       (cosmic-bg >= 1.0.0 with cosmic-bg < 2.0.0)
 Requires:       (cosmic-icon-theme >= 1.0.0 with cosmic-icon-theme < 2.0.0)
 Requires:       (cosmic-idle >= 1.0.0 with cosmic-idle < 2.0.0)
