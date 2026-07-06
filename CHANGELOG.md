@@ -1,3 +1,10 @@
+## [1.2.5](https://github.com/playtron-os/cosmic-session/compare/v1.2.4...v1.2.5) (2026-07-06)
+
+
+### Bug Fixes
+
+* remove cosmic-greeter from RPM dep ([aff6781](https://github.com/playtron-os/cosmic-session/commit/aff6781821897e46986e5b726f0654b0b5648a3c))
+
 ## [1.2.4](https://github.com/playtron-os/cosmic-session/compare/v1.2.3...v1.2.4) (2026-06-29)
 
 
