@@ -186,6 +186,8 @@ tasks:
         sh: pwd
       SSH_KEY:
         sh: echo "${SSH_KEY}"
+      CONTAINER_OPTS:
+        sh: 'docker --version 2>/dev/null | grep -qi podman && echo "--security-opt label=disable --userns=keep-id" || echo ""'
     requires:
       vars:
         - TARGET
@@ -205,6 +207,7 @@ tasks:
         {{ end }}
       - |
         docker run --rm \
+          {{.CONTAINER_OPTS}} \
           -v "{{.PWD}}:{{.PWD}}" \
           -v "{{.PWD}}/.cache/home:/home/build" \
           -v "{{.PWD}}/.cache/var/lib/rpm:/var/lib/rpm" \
@@ -220,4 +223,3 @@ tasks:
           --user {{.UID}}:{{.GID}} \
           {{.IMAGE_NAME}}:{{.IMAGE_TAG}} \
           task {{.TARGET}} ARCH={{.ARCH}} TARGET_ARCH={{.TARGET_ARCH}}
-

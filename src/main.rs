@@ -108,6 +108,24 @@ async fn main() -> Result<()> {
 	Ok(())
 }
 
+// Attach-mode startup tracing. Set COSMIC_SESSION_DEBUG=1 to append markers to
+// /tmp/cs-debug.log (used to pin the systemd/logind-stall bug on the greetd vt=none
+// session); off by default so release sessions leave no cruft.
+macro_rules! dbg_log {
+	($($arg:tt)*) => {{
+		if std::env::var_os("COSMIC_SESSION_DEBUG").is_some() {
+			use std::io::Write as _;
+			if let Ok(mut f) = std::fs::OpenOptions::new()
+				.create(true)
+				.append(true)
+				.open("/tmp/cs-debug.log")
+			{
+				let _ = writeln!(f, $($arg)*);
+			}
+		}
+	}};
+}
+
 #[derive(Debug)]
 pub enum Status {
 	Restarted,
@@ -126,6 +144,13 @@ async fn start(
 		args.collect::<Vec<_>>(),
 	);
 
+	// Attach mode (global compositor): a persistent cosmic-comp already owns
+	// the display from boot. Instead of spawning our own compositor and reading its
+	// env back over the IPC channel, we inherit the running compositor's
+	// WAYLAND_DISPLAY and bring up only the session components as its clients — no
+	// second compositor, no VT switch, no hand-off.
+	let attach = env::var_os("COSMIC_SESSION_ATTACH").is_some();
+
 	let process_manager = ProcessManager::new().await;
 	_ = process_manager.set_max_restarts(usize::MAX).await;
 	_ = process_manager
@@ -134,35 +159,64 @@ async fn start(
 		))
 		.await;
 	let token = CancellationToken::new();
-	let (env_tx, env_rx) = oneshot::channel();
-	let compositor_handle = comp::run_compositor(
-		&process_manager,
-		executable.clone(),
-		args,
-		token.child_token(),
-		env_tx,
-		session_tx,
-	)
-	.wrap_err("failed to start compositor")?;
 
-	let mut env_vars = env_rx
-		.await
-		.expect("failed to receive environmental variables")
-		.into_iter()
-		.collect::<Vec<_>>();
-	info!(
-		"got environmental variables from cosmic-comp: {:?}",
-		env_vars
-	);
+	let (compositor_handle, mut env_vars) = if attach {
+		let wayland_display = env::var("WAYLAND_DISPLAY").wrap_err(
+			"COSMIC_SESSION_ATTACH is set but WAYLAND_DISPLAY was not inherited from the compositor",
+		)?;
+		let mut env_vars = vec![("WAYLAND_DISPLAY".to_string(), wayland_display)];
+		if let Ok(display) = env::var("DISPLAY") {
+			env_vars.push(("DISPLAY".to_string(), display));
+		}
+		info!("attach mode: using inherited compositor env: {:?}", env_vars);
+		(None, env_vars)
+	} else {
+		let (env_tx, env_rx) = oneshot::channel();
+		let compositor_handle = comp::run_compositor(
+			&process_manager,
+			executable.clone(),
+			args,
+			token.child_token(),
+			env_tx,
+			session_tx,
+		)
+		.wrap_err("failed to start compositor")?;
+		let env_vars = env_rx
+			.await
+			.expect("failed to receive environmental variables")
+			.into_iter()
+			.collect::<Vec<_>>();
+		info!(
+			"got environmental variables from cosmic-comp: {:?}",
+			env_vars
+		);
+		(Some(compositor_handle), env_vars)
+	};
 
 	// now that cosmic-comp is ready, set XDG_SESSION_TYPE=wayland for new processes
 	env_vars.push(("XDG_SESSION_TYPE".to_string(), "wayland".to_string()));
-	systemd::set_systemd_environment("XDG_SESSION_TYPE", "wayland").await;
+	dbg_log!("CS-DBG attach={}: about to set_systemd_environment", attach);
+	let _ = tokio::time::timeout(
+		std::time::Duration::from_secs(4),
+		systemd::set_systemd_environment("XDG_SESSION_TYPE", "wayland"),
+	)
+	.await;
+	dbg_log!(
+		"CS-DBG: set_systemd_environment done; is_systemd_used={}",
+		*is_systemd_used()
+	);
 
 	#[cfg(feature = "systemd")]
 	let _inhibit_fd = if *is_systemd_used() {
-		match get_systemd_env().await {
-			Ok(env) => {
+		dbg_log!("CS-DBG: about to get_systemd_env");
+		match tokio::time::timeout(std::time::Duration::from_secs(4), get_systemd_env()).await {
+			Err(_) => {
+				dbg_log!("CS-DBG: get_systemd_env TIMED OUT");
+			}
+			Ok(Err(err)) => {
+				warn!("Failed to sync systemd environment {}.", err);
+			}
+			Ok(Ok(env)) => {
 				for systemd_env in env {
 					// Only update the envvar if unset
 					if std::env::var_os(&systemd_env.key) == None {
@@ -183,43 +237,45 @@ async fn start(
 					}
 				}
 			}
-			Err(err) => {
-				warn!("Failed to sync systemd environment {}.", err);
-			}
 		};
+		dbg_log!("CS-DBG: about to logind inhibit (system-bus connect)");
 		#[cfg(feature = "logind")]
-		match zbus::Connection::system().await {
-			Ok(connection) => match logind_zbus::manager::ManagerProxy::new(&connection).await {
-				Ok(proxy) => match proxy
-					.inhibit(
-						logind_zbus::manager::InhibitType::HandlePowerKey,
-						"Cosmic Session",
-						"Show confirmation dialog.",
-						"block",
-					)
-					.await
-				{
-					Ok(fd) => Some(fd),
-					Err(err) => {
-						error!("Failed to inhibit power key {err:?}");
-						None
-					}
-				},
-				Err(err) => {
-					error!("Failed to connect to logind manager {err:?}");
-					None
-				}
-			},
-			Err(err) => {
-				error!("Failed to connect to system dbus {err:?}");
+		let inhibit = match tokio::time::timeout(std::time::Duration::from_secs(4), async {
+			let connection = zbus::Connection::system().await?;
+			let proxy = logind_zbus::manager::ManagerProxy::new(&connection).await?;
+			proxy
+				.inhibit(
+					logind_zbus::manager::InhibitType::HandlePowerKey,
+					"Cosmic Session",
+					"Show confirmation dialog.",
+					"block",
+				)
+				.await
+		})
+		.await
+		{
+			Ok(Ok(fd)) => Some(fd),
+			Ok(Err(err)) => {
+				error!("Failed to set up power-key inhibitor {err:?}");
 				None
 			}
+			Err(_) => {
+				dbg_log!("CS-DBG: logind inhibit TIMED OUT");
+				None
+			}
+		};
+		dbg_log!("CS-DBG: logind inhibit handled");
+		#[cfg(feature = "logind")]
+		{
+			inhibit
 		}
 		#[cfg(not(feature = "logind"))]
 		None
 	} else {
+		dbg_log!("CS-DBG: is_systemd_used=false; skipped systemd block");
 		None
 	};
+	dbg_log!("CS-DBG: past _inhibit_fd block; starting settings-daemon");
 
 	let stdout_span = info_span!(parent: None, "cosmic-settings-daemon");
 	let stderr_span = stdout_span.clone();
@@ -261,7 +317,11 @@ async fn start(
 	// - cosmic-comp is ready
 	// - we've set any related variables
 	// - cosmic-settings-daemon is ready
-	systemd::start_systemd_target().await;
+	dbg_log!("CS-DBG: settings-daemon started; about to start_systemd_target");
+	let _ = tokio::time::timeout(std::time::Duration::from_secs(6), systemd::start_systemd_target())
+		.await
+		.map_err(|_| dbg_log!("CS-DBG: start_systemd_target TIMED OUT"));
+	dbg_log!("CS-DBG: start_systemd_target done");
 	// Always stop the target when the process exits or panics.
 	scopeguard::defer! {
 		systemd::stop_systemd_target();
@@ -341,6 +401,7 @@ async fn start(
 	);
 	drop(guard);
 
+	dbg_log!("CS-DBG: reached component-launch section (cosmic-app-library)");
 	let span = info_span!(parent: None, "cosmic-app-library");
 	start_component("cosmic-app-library", span, &process_manager, &env_vars).await;
 
@@ -357,8 +418,10 @@ async fn start(
 		.filter(|s| !s.is_empty())
 	{
 		let component_owned = component.to_string();
+		dbg_log!("CS-DBG: start_component {}", component_owned);
 		let span = tracing::span!(parent: None, tracing::Level::INFO, "component", name = %component_owned);
-		start_component(component_owned, span, &process_manager, &env_vars).await;
+		start_component(component_owned.clone(), span, &process_manager, &env_vars).await;
+		dbg_log!("CS-DBG: start_component {} returned", component_owned);
 	}
 
 	#[cfg(feature = "autostart")]
@@ -494,8 +557,14 @@ async fn start(
 		}
 	}
 
-	compositor_handle.abort();
+	if let Some(compositor_handle) = compositor_handle {
+		compositor_handle.abort();
+	}
 	token.cancel();
+
+	let _ = process_manager.set_max_restarts(0).await;
+	let components_stopped_at = std::time::Instant::now();
+	process_manager.stop();
 	if let Err(err) = process_manager.stop_process(settings_daemon).await {
 		tracing::error!(?err, "Failed to gracefully stop settings daemon.");
 	} else {
@@ -507,7 +576,11 @@ async fn start(
 		};
 	};
 
-	tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+	const TEARDOWN_GRACE: std::time::Duration = std::time::Duration::from_millis(350);
+	let elapsed = components_stopped_at.elapsed();
+	if elapsed < TEARDOWN_GRACE {
+		tokio::time::sleep(TEARDOWN_GRACE - elapsed).await;
+	}
 	Ok(status)
 }
 
@@ -527,6 +600,7 @@ async fn start_component(
 		.start(
 			Process::new()
 				.with_executable(cmd.clone())
+				.with_cancel_timeout(Duration::from_millis(250))
 				.with_env(env_vars.iter().cloned())
 				.with_on_stdout(move |_, _, line| {
 					let stdout_span = stdout_span.clone();

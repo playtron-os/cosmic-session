@@ -80,6 +80,13 @@ if [ -d "/run/user/$(id -u)/keyring" ]; then
     export SSH_AUTH_SOCK="/run/user/$(id -u)/keyring/ssh"
 fi
 
+# Ensure DBUS_SESSION_BUS_ADDRESS points at the user's real session bus.
+# After the login-shell re-exec above, a greetd vt="none" session does not carry
+# DBUS_SESSION_BUS_ADDRESS (the shell restores XDG_RUNTIME_DIR but not the bus).
+if [ -z "${DBUS_SESSION_BUS_ADDRESS}" ] && [ -S "${XDG_RUNTIME_DIR}/bus" ]; then
+    export DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR}/bus"
+fi
+
 if command -v systemctl >/dev/null; then
     # set environment variables for new units started by user service manager
     systemctl --user import-environment XDG_SESSION_TYPE XDG_CURRENT_DESKTOP DCONF_PROFILE SSH_AUTH_SOCK SESSION_PANEL SESSION_COMPONENTS HOME_ENABLED COSMIC_FORCE_CLOSE_ALLOWED COSMIC_VOICE_INPUT_APP_IDS COSMIC_ACTIVATION_TRUSTED_APPS SESSION_NOTIFICATIONS
