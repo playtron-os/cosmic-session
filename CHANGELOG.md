@@ -1,3 +1,10 @@
+## [1.2.6](https://github.com/playtron-os/cosmic-session/compare/v1.2.5...v1.2.6) (2026-07-30)
+
+
+### Bug Fixes
+
+* require cosmic-osd with epoch ([379b656](https://github.com/playtron-os/cosmic-session/commit/379b656c9a2c06d9b86e9d99bfdb0ab0554cf405))
+
 ## [1.2.5](https://github.com/playtron-os/cosmic-session/compare/v1.2.4...v1.2.5) (2026-07-06)
 
 

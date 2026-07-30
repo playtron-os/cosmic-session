@@ -307,7 +307,7 @@ dependencies = [
 
 [[package]]
 name = "cosmic-session"
-version = "1.2.5"
+version = "1.2.6"
 dependencies = [
  "async-signals",
  "color-eyre",
