@@ -17,7 +17,12 @@ freedesktop-desktop-entry = { version = "0.7.14", optional = true }
 shell-words = { version = "1.1.0", optional = true }
 dirs = { version = "6.0.0", optional = true }
 itertools = "0.14"
-launch-pad = { git = "https://github.com/pop-os/launch-pad" }
+# Playtron fork. Upstream detects process exit only by awaiting Child::wait(),
+# which never returns for a process whose thread-group leader died while its
+# worker threads live on - the state a kernel oops in a driver leaves behind.
+# Revision is pinned: an unpinned git dependency lets `cargo update` silently
+# change the process supervisor of a shipped OS.
+launch-pad = { git = "https://github.com/playtron-os/launch-pad", rev = "e50de65a37b1364a20220c0392b67a1743059a66" }
 libc = "0.2"
 log-panics = { version = "2", features = ["with-backtrace"] }
 rustix = "1.0"
