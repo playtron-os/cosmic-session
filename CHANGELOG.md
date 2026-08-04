@@ -1,3 +1,12 @@
+## [1.2.7](https://github.com/playtron-os/cosmic-session/compare/v1.2.6...v1.2.7) (2026-08-04)
+
+
+### Bug Fixes
+
+* pass env vars to cosmic-settings-daemon as well ([d056141](https://github.com/playtron-os/cosmic-session/commit/d05614114a060c85958ffc09e87070d7cc74201d))
+* update dependencies to clear three security advisories ([bde338c](https://github.com/playtron-os/cosmic-session/commit/bde338c009f600ae8bf0f535fd698c24a135a709))
+* use forked launch-pad so a dead compositor restarts the session ([8b6a7ef](https://github.com/playtron-os/cosmic-session/commit/8b6a7ef9e8d15f6b6f4b27ef418db85aef9eda19))
+
 ## [1.2.6](https://github.com/playtron-os/cosmic-session/compare/v1.2.5...v1.2.6) (2026-07-30)
 
 
