@@ -1,7 +1,7 @@
 rootdir := ''
 prefix := '/usr'
 cargo-target-dir := env('CARGO_TARGET_DIR', 'target')
-orca := '/usr/bin/orca'
+orca := 'orca'
 cosmic_dconf_profile := prefix + '/share/dconf/profile/cosmic'
 usrdir := absolute_path(clean(rootdir / prefix))
 bindir := usrdir / 'bin'

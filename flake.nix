@@ -52,15 +52,12 @@
             just prefix=$out xdp_cosmic=/run/current-system/sw/bin/xdg-desktop-portal-cosmic build 
           '';
         installPhase = ''
-            runHook preInstallPhase
             just prefix=$out install
           '';
-        preInstallPhase = ''
-            substituteInPlace data/start-cosmic --replace '#!/bin/bash' "#!${pkgs.bash}/bin/bash"
-            substituteInPlace data/start-cosmic --replace '/usr/bin/cosmic-session' "${placeholder "out"}/bin/cosmic-session"
-            substituteInPlace data/start-cosmic --replace '/usr/bin/dbus-run-session' "${pkgs.dbus}/bin/dbus-run-session"
-            substituteInPlace data/cosmic.desktop --replace '/usr/bin/start-cosmic' "${placeholder "out"}/bin/start-cosmic"
-        '';  
+          # No path rewriting needed: start-cosmic finds its sibling
+          # cosmic-session relative to itself, cosmic.desktop's Exec= and
+          # dbus-run-session resolve through the session PATH, and patchShebangs
+          # handles the `#!/usr/bin/env bash` shebang.
           passthru.providedSessions = [ "cosmic" ];
         });
 
