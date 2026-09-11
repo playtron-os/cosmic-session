@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
@@ -85,9 +85,22 @@ if command -v systemctl >/dev/null; then
     systemctl --user import-environment XDG_SESSION_TYPE XDG_CURRENT_DESKTOP DCONF_PROFILE SSH_AUTH_SOCK SESSION_PANEL SESSION_COMPONENTS HOME_ENABLED COSMIC_FORCE_CLOSE_ALLOWED COSMIC_VOICE_INPUT_APP_IDS COSMIC_ACTIVATION_TRUSTED_APPS SESSION_NOTIFICATIONS
 fi
 
+# Prefer the cosmic-session installed next to this script, so the session binary
+# always comes from the same prefix as its launcher no matter where that prefix
+# is. Fall back to a PATH lookup when the script is run from a source tree.
+self="$0"
+case "${self}" in
+    */*) ;;
+    *) self="$(command -v -- "${self}" 2>/dev/null)" || self="" ;;
+esac
+cosmic_session="cosmic-session"
+if [ -n "${self}" ] && [ -x "$(dirname -- "${self}")/cosmic-session" ]; then
+    cosmic_session="$(dirname -- "${self}")/cosmic-session"
+fi
+
 # Run cosmic-session
 if [[ -z "${DBUS_SESSION_BUS_ADDRESS}" ]]; then
-    exec /usr/bin/dbus-run-session -- /usr/bin/cosmic-session
+    exec dbus-run-session -- "${cosmic_session}"
 else
-    exec /usr/bin/cosmic-session
+    exec "${cosmic_session}"
 fi
