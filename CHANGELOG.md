@@ -1,3 +1,10 @@
+## [1.2.8](https://github.com/playtron-os/cosmic-session/compare/v1.2.7...v1.2.8) (2026-09-11)
+
+
+### Bug Fixes
+
+* resolve session binaries by prefix and PATH instead of hardcoded /usr/bin ([baab1c9](https://github.com/playtron-os/cosmic-session/commit/baab1c97adaa3b62bc66096af9ddd97a9f29070e))
+
 ## [1.2.7](https://github.com/playtron-os/cosmic-session/compare/v1.2.6...v1.2.7) (2026-08-04)
 
 
