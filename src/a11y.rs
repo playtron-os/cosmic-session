@@ -27,25 +27,35 @@ pub async fn start_a11y(
 	let (tx, mut rx) = mpsc::unbounded_channel();
 	let mut process_key = None;
 	let conn = zbus::Connection::session().await?;
-	let proxy = cosmic_dbus_a11y::StatusProxy::new(&conn).await?;
+	// Uncached: a property cache gives up for good if org.a11y.Bus is missing when it starts.
+	let proxy = cosmic_dbus_a11y::StatusProxy::builder(&conn)
+		.cache_properties(zbus::proxy::CacheProperties::No)
+		.build()
+		.await?;
+	let properties = zbus::fdo::PropertiesProxy::builder(&conn)
+		.destination(proxy.inner().destination().to_owned())?
+		.path(proxy.inner().path().to_owned())?
+		.build()
+		.await?;
+	// Subscribed before the first read, so nothing between the two is missed. Both follow
+	// org.a11y.Bus as it appears, restarts or goes away.
+	let mut owner_changes = proxy.inner().receive_owner_changed().await?;
+	let mut status_changes = properties
+		.receive_properties_changed_with_args(&[(0, "org.a11y.Status")])
+		.await?;
 
 	tokio::spawn(async move {
-		let mut watch_changes = proxy.receive_screen_reader_enabled_changed().await;
-		let mut enabled = false;
-		if let Ok(status) = proxy.screen_reader_enabled().await {
-			_ = tx.send(status);
-
-			enabled = status;
-		}
-		while let Some(change) = watch_changes.next().await {
-			let Ok(new_enabled) = change.get().await else {
-				tokio::time::sleep(tokio::time::Duration::from_secs(10)).await;
-				continue;
+		// Reading also starts the bus when it can be activated.
+		_ = tx.send(proxy.screen_reader_enabled().await.unwrap_or(false));
+		loop {
+			let enabled = tokio::select! {
+				Some(owner) = owner_changes.next() => {
+					owner.is_some() && proxy.screen_reader_enabled().await.unwrap_or(false)
+				}
+				Some(_) = status_changes.next() => proxy.screen_reader_enabled().await.unwrap_or(false),
+				else => break,
 			};
-			if enabled != new_enabled {
-				_ = tx.send(new_enabled);
-				enabled = new_enabled;
-			}
+			_ = tx.send(enabled);
 		}
 	});
 
@@ -58,8 +68,11 @@ pub async fn start_a11y(
 			// spawn orca
 			match pman
 				.start(
+					// A session that began with accessibility off may carry these; they would
+					// hide Orca's own windows from it.
 					launch_pad::process::Process::new()
-						.with_executable(&orca)
+						.with_executable("env")
+						.with_args(["-u", "NO_AT_BRIDGE", "-u", "GTK_A11Y", &orca])
 						.with_env(env_vars.clone())
 						.with_on_stdout(move |_, _, line| {
 							let stdout_span = stdout_span.clone();
