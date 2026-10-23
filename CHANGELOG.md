@@ -1,3 +1,10 @@
+## [1.2.9](https://github.com/playtron-os/cosmic-session/compare/v1.2.8...v1.2.9) (2026-10-23)
+
+
+### Bug Fixes
+
+* **a11y:** start the screen reader when the a11y bus appears late ([0430c3a](https://github.com/playtron-os/cosmic-session/commit/0430c3a6403e97c95e3c2c013ef73a62eb53d3c2))
+
 ## [1.2.8](https://github.com/playtron-os/cosmic-session/compare/v1.2.7...v1.2.8) (2026-09-11)
 
 

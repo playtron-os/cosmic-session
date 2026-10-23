@@ -1,6 +1,6 @@
 Name:           cosmic-session
 Epoch:          1
-Version: 1.2.8
+Version: 1.2.9
 Release:        1%{?dist}
 Summary:        COSMIC Session Manager (Playtron fork)
 
