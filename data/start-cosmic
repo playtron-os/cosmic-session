@@ -37,6 +37,24 @@ if [ -z "$XDG_RUNTIME_DIR" ]; then
     fi
 fi
 
+# The person's own formats (LC_TIME and the like) live in their environment.d, which only
+# the user manager reads, so take its LC_* over the login's. LANG stays the system's.
+if command -v systemctl >/dev/null; then
+    while IFS= read -r assignment; do
+        name="${assignment%%=*}"
+        value="${assignment#*=}"
+        case "${name}" in
+            LC_ALL) continue ;;
+            LC_*) ;;
+            *) continue ;;
+        esac
+        # systemctl quotes values that are not plain words; a locale name always is one.
+        if [[ "${value}" =~ ^[A-Za-z0-9_.@-]+$ ]]; then
+            export "${name}=${value}"
+        fi
+    done < <(systemctl --user show-environment 2>/dev/null)
+fi
+
 # Ensure XDG_VTNR is set (needed for logind session activation)
 if [ -z "$XDG_VTNR" ]; then
     # Try to detect VT from current tty
